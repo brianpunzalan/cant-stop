@@ -48,7 +48,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   board: { flex: '0 0 auto' },
   sidebar: {
-    flex: '0 0 240px',
+    flex: '1 1 240px',
+    maxWidth: '360px',
     display: 'flex',
     flexDirection: 'column',
     gap: '1rem',
