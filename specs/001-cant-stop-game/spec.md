@@ -25,7 +25,7 @@ Two to four players sit down to play a full game of Can't Stop from setup throug
 
 ### User Story 2 - Roll Dice and Choose a Pairing (Priority: P1)
 
-On their turn, a player rolls four dice and is presented with the three possible ways to pair the dice into two sums. The player selects which pairing to use. The system enforces legality: if all pairings are unusable, the player busts automatically; if some pairings are only partially usable, the player must take the available progress.
+On their turn, a player rolls four dice and is presented with all non-unusable ways to pair the dice into two sums. The player may freely select any non-unusable pairing — including a partially usable one even when a fully usable option is also available. If all pairings are unusable, the player busts automatically.
 
 **Why this priority**: Dice rolling and split selection is the core mechanic every turn depends on. It must be correct for the game to function.
 
@@ -34,8 +34,8 @@ On their turn, a player rolls four dice and is presented with the three possible
 **Acceptance Scenarios**:
 
 1. **Given** a player is in their turn, **When** they roll four dice, **Then** all three possible pair-splits are computed and each is classified as fully usable, partially usable, or unusable.
-2. **Given** at least one split is fully usable, **When** the player selects it, **Then** both sums are applied as advances and the player is offered the choice to stop or roll again.
-3. **Given** no split is fully usable but at least one is partially usable, **When** the player selects a partial split, **Then** only the usable sum is applied and the player may stop or roll again.
+2. **Given** at least one split is fully usable and the player selects a fully usable split, **When** it is applied, **Then** both sums are applied as advances and the player is offered the choice to stop or roll again.
+3. **Given** at least one split is usable or partially usable and the player selects a partially usable split, **When** it is applied, **Then** only the usable sum is applied as an advance and the player is offered the choice to stop or roll again.
 4. **Given** all splits are unusable, **When** the roll resolves, **Then** the player busts automatically — no split selection is presented and the turn ends.
 5. **Given** a chosen split has two equal sums (doubles), **When** it is applied, **Then** the matching column is advanced twice in sequence.
 
@@ -97,7 +97,6 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - Three climbers are all at their respective summits at the same time: the player may stop and claim all three columns in a single commit, which may be game-winning.
 - A roll produces a split where both sums target already-claimed columns: that split is fully unusable.
 - A roll produces only splits where one sum targets a closed column and the other would open a fourth active column: all splits are unusable and the player busts.
-- The game is in a state where all remaining open columns are ones the current player has three climbers on: that player cannot bust due to capacity but may be forced into a very narrow move set.
 
 ---
 
@@ -112,8 +111,8 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - **FR-005**: The system MUST enforce a maximum of 3 active climber columns per turn.
 - **FR-006**: The system MUST simulate rolling 4 six-sided dice on each roll action.
 - **FR-007**: The system MUST compute all three possible pair-splits from a 4-dice roll and classify each split as fully usable, partially usable, or unusable based on current game state.
-- **FR-008**: The system MUST require the active player to select a fully usable split when at least one exists.
-- **FR-009**: The system MUST require the active player to apply the usable sum when no fully usable split exists but at least one partially usable split exists.
+- **FR-008**: The system MUST allow the active player to freely select any non-unusable split, including a partially usable split even when a fully usable split is also available.
+- **FR-009**: The system MUST apply only the usable sum when the player selects a partially usable split, and apply both sums when the player selects a fully usable split.
 - **FR-010**: The system MUST automatically trigger a bust when all splits are unusable.
 - **FR-011**: The system MUST advance a column's climber by the correct amount when a sum is applied, placing a new climber one step above the player's committed position if no climber exists, or advancing the existing climber otherwise.
 - **FR-012**: The system MUST cap climber advancement at the column's summit (height) and not advance beyond it.
