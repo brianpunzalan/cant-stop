@@ -1,186 +1,104 @@
-# Implementation Plan: Can't Stop — Digital Board Game
+# Implementation Plan: [FEATURE]
 
-**Branch**: `claude/implement-spec-001-tWMay` | **Date**: 2026-05-08 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `specs/001-cant-stop-game/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+
+**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
-Implement a fully offline, browser-only digital version of the Can't Stop push-your-luck dice game for 2–4 players. The stack is React 19 + TypeScript + Vite with PixiJS (`@pixi/react` v8) for the game board rendering, Zustand for reactive state bridging the server and client layers, Dexie.js (IndexedDB) for local game persistence, and `vite-plugin-pwa` to deliver the app as an installable, offline-capable PWA.
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x
-**Primary Dependencies**: React 19, Vite 5, pixi.js v8, @pixi/react v8, Zustand v5.0.12, Dexie v4.4.2, vite-plugin-pwa v1.3.0, Vitest, @testing-library/react
-**Storage**: IndexedDB via Dexie.js v4 (schema version 1; migration path required for future changes)
-**Testing**: Vitest (unit + integration) + @testing-library/react (component tests)
-**Target Platform**: Modern evergreen browsers (Chrome, Firefox, Safari, Edge); installable as PWA; fully offline after first visit
-**Project Type**: Browser game / Progressive Web App
-**Performance Goals**: 60 fps gameplay rendering; <2 s initial load on WiFi after cache miss
-**Constraints**: No server runtime; no network dependency for core gameplay; hot-seat multiplayer only (all players share one device); no authentication; no save/load across browser sessions is not required (IndexedDB persists within a browser profile)
-**Scale/Scope**: 2–4 players per session; 11 columns; single device; ~6 source modules in the server layer + ~8 in the client layer
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
-### Principle I — Clean Code
-✅ Engine functions are pure, single-responsibility TypeScript functions. No abbreviations for domain concepts. Comments explain rationale for non-obvious algorithmic choices only (e.g., split enumeration order).
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### Principle II — React Composition Patterns
-✅ All UI expressed as function components + custom hooks. State-owning hooks (`useGameActions`, `useGameState`) are separated from leaf presentational components (`<BoardColumn>`, `<Die>`, `<Climber>`). PixiJS components composed inside the `<Application>` stage.
-
-### Principle III — Offline-First PWA (NON-NEGOTIABLE)
-✅ `vite-plugin-pwa` + Workbox precaches all build outputs. `GameDatabase` (Dexie) persists game state to IndexedDB — no network call required at runtime. Service worker handles first-load caching; app is operable offline after one online visit.
-
-### Principle IV — Spec-Driven Tests (NON-NEGOTIABLE)
-✅ Test files reference spec scenario IDs in their descriptions. All 19 FRs and all 7 edge cases map to at least one test. Engine tests authored before implementation code.
-
-### Principle V — All Tests Pass Gate (NON-NEGOTIABLE)
-✅ CI blocks merge on any failing test, lint error, or type error. No `.only`/`xit` markers permitted.
+[Gates determined based on constitution file]
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/001-cant-stop-game/
-├── plan.md              # This file
-├── research.md          # Phase 0 — tech decisions and rationale
-├── data-model.md        # Phase 1 — entities, fields, state transitions
-├── quickstart.md        # Phase 1 — integration scenarios
-├── contracts/
-│   ├── IGameService.ts  # Server/client boundary interface
-│   └── types.ts         # All shared domain types
-└── tasks.md             # Phase 2 — generated by /speckit-tasks
+specs/[###-feature]/
+├── plan.md              # This file (/speckit-plan command output)
+├── research.md          # Phase 0 output (/speckit-plan command)
+├── data-model.md        # Phase 1 output (/speckit-plan command)
+├── quickstart.md        # Phase 1 output (/speckit-plan command)
+├── contracts/           # Phase 1 output (/speckit-plan command)
+└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
 ### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── shared/
-│   └── types.ts                   # Domain types (Game, Board, Column, Turn, Roll, Split, …)
-│
-├── server/                        # "Server" — all game logic + data persistence
-│   ├── db/
-│   │   └── GameDatabase.ts        # Dexie database class + schema (version 1)
-│   ├── engine/
-│   │   ├── dice.ts                # rollDice(), computeSplits(), classifyUsability()
-│   │   ├── board.ts               # COLUMN_HEIGHTS, advanceClimber(), claimColumn(), removeOpponentMarkers()
-│   │   └── rules.ts               # isBust(), isWin(), nextPlayerIndex()
-│   └── services/
-│       └── GameService.ts         # IGameService implementation; orchestrates engine + DB + store writes
-│
-├── store/
-│   └── gameStore.ts               # Zustand store (GameStore shape); server writes, client reads
-│
-├── client/                        # "Client" — all UI and rendering
-│   ├── hooks/
-│   │   ├── useGameState.ts        # Selector hook over Zustand store (read-only)
-│   │   └── useGameActions.ts      # Action hook — calls GameService methods
-│   ├── components/
-│   │   ├── GameLobby.tsx          # Player name/color setup form
-│   │   ├── TurnControls.tsx       # Roll button, Stop button, bust notification
-│   │   ├── SplitSelector.tsx      # Renders 3 split options; emits selected index
-│   │   └── PlayerStatus.tsx       # Per-player claimed columns + current score sidebar
-│   └── pixi/
-│       ├── GameBoard.tsx          # @pixi/react <Application> wrapper; composes all Pixi components
-│       ├── BoardColumn.tsx        # Single column track: cell grid, column number label
-│       ├── PlayerMarker.tsx       # Committed position circle (color per player)
-│       └── Climber.tsx            # Active turn climber circle (slightly smaller, same color)
-│
-├── assets/
-│   └── dice/                      # SVG dice face icons (dice-six-faces-one.svg … six.svg)
-│                                  # Source: game-icons.net, CC BY 3.0
-│
-├── App.tsx                        # Root: routes between GameLobby and GamePage
-└── main.tsx                       # React 19 root; registers Pixi components via extend()
+├── models/
+├── services/
+├── cli/
+└── lib/
 
 tests/
-├── engine/
-│   ├── dice.test.ts               # All FR-006, FR-007, FR-008, FR-009, FR-010, FR-013 tests
-│   ├── board.test.ts              # FR-002, FR-003, FR-004, FR-011, FR-012, FR-015 tests
-│   └── rules.test.ts              # FR-005, FR-016, FR-017, FR-018, FR-019 tests
-├── services/
-│   └── GameService.test.ts        # Integration: full game flows (all quickstart scenarios)
-└── components/
-    ├── TurnControls.test.tsx
-    ├── SplitSelector.test.tsx
-    └── PlayerStatus.test.tsx
+├── contract/
+├── integration/
+└── unit/
 
-public/
-├── icon-192.png                   # PWA icon (192×192)
-├── icon-512.png                   # PWA icon (512×512)
-└── manifest.webmanifest           # Generated by vite-plugin-pwa
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
 
-vite.config.ts                     # Vite config + vite-plugin-pwa
-tsconfig.json                      # jsxImportSource: "@pixi/react"
-vitest.config.ts                   # Vitest config (jsdom environment)
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: Single-project layout with an explicit `src/server/` and `src/client/` split for concern separation. The `src/store/` layer is the reactive boundary between them. This avoids the overhead of a monorepo while still enforcing the client/server module boundary by convention and by import direction (client may import from store and shared; server may import from shared only; neither crosses into the other).
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
-No constitution violations. The `src/store/` layer (Zustand outside both server and client) is the minimal bridge needed for reactive UI updates from the server layer; no simpler alternative allows the engine to write state that React components observe without passing refs or callbacks across module boundaries.
+> **Fill ONLY if Constitution Check has violations that must be justified**
 
-## Key Implementation Notes
-
-### Split Enumeration (3 pairings of 4 dice)
-
-Given dice `[d0, d1, d2, d3]`, the three canonical pairings are:
-```
-Split 0: (d0+d1, d2+d3)
-Split 1: (d0+d2, d1+d3)
-Split 2: (d0+d3, d1+d2)
-```
-This enumeration is exhaustive and non-redundant for 4 dice.
-
-### Climber Placement Rule (FR-011)
-
-When a sum `s` is applied and no climber exists on column `s`:
-```
-climbers[s] = committedPositions[activePlayerId][s] + 1
-```
-When a climber already exists:
-```
-climbers[s] = climbers[s] + 1
-```
-In both cases, climber is capped at `column.height` (FR-012).
-
-### 4-Column Constraint in Usability Classification (FR-005, FR-007)
-
-A sum `s` is blocked if:
-1. column `s` is claimed, OR
-2. no climber exists on column `s` AND `activeColumns.length === 3`
-
-A split is:
-- `fully-usable` if neither sum is blocked
-- `partially-usable` if exactly one sum is blocked
-- `unusable` if both sums are blocked
-
-### PixiJS + React 19 Setup
-
-`main.tsx` must call `extend()` before any PixiJS JSX is rendered:
-```typescript
-import { extend } from '@pixi/react';
-import { Graphics, Text, Sprite, Container } from 'pixi.js';
-extend({ Graphics, Text, Sprite, Container });
-```
-
-`tsconfig.json` must include:
-```json
-{ "compilerOptions": { "jsxImportSource": "@pixi/react" } }
-```
-
-### PWA Offline Strategy
-
-`vite-plugin-pwa` config uses `generateSW` strategy with Workbox `precacheAndRoute` for all build artifacts. Game assets (SVG dice) are included in `globPatterns`. The service worker intercepts all navigation and asset requests from cache-first after the first online visit.
-
-### Dexie Schema v1
-
-```typescript
-this.version(1).stores({
-  games: 'id, status, updatedAt',
-});
-```
-
-The full `Game` object is stored as a single serialized JSON blob per record. Future schema versions must provide an `upgrade()` function to migrate existing records.
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
