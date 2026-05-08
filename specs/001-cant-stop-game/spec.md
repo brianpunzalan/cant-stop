@@ -30,7 +30,7 @@ On their turn, a player rolls four dice and is presented with all non-unusable w
 
 **Why this priority**: Dice rolling and split selection is the core mechanic every turn depends on. It must be correct for the game to function.
 
-**Independent Test**: A single turn can be simulated in isolation — roll dice, display valid pairings, select one, and observe climber advances — without needing a full game session.
+**Independent Test**: A single turn can be simulated in isolation — roll dice, display valid pairings, select one, and observe climber advances — without needing a full game session. All three pairings are always shown; unusable pairings are visually disabled and unclickable.
 
 **Acceptance Scenarios**:
 
@@ -127,6 +127,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - **FR-020**: The system MUST auto-save the complete game state to IndexedDB after every state-mutating action (roll, split selection, stop, bust). On page load, if a saved in-progress game exists, it MUST be automatically restored without user intervention.
 - **FR-021**: When the game ends, the system MUST display a winner screen. The winner screen MUST offer a "New Game" action that clears the finished game from storage and navigates to the player-name setup lobby.
 - **FR-022**: When a player triggers a roll, the system MUST display a dice tumble animation lasting approximately 1 second before revealing the result values. The Roll button and split selector MUST be disabled for the duration of the animation.
+- **FR-023**: The split selector MUST always display all three pair-splits after a roll. Unusable splits MUST be rendered with disabled styling (grayed out, unclickable) to communicate why they cannot be chosen. No additional color coding beyond enabled/disabled is required.
 
 ### Key Entities
 
@@ -143,7 +144,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 
 ### Measurable Outcomes
 
-- **SC-001**: All 22 functional requirements are satisfied and pass automated verification.
+- **SC-001**: All 23 functional requirements are satisfied and pass automated verification.
 - **SC-002**: A complete 2-player game can be started, played to completion, and produce a winner in a single uninterrupted session with no invalid state transitions.
 - **SC-003**: Every edge case identified in the specification (§ Edge Cases) produces the correct outcome under automated testing with 100% pass rate.
 - **SC-004**: The bust mechanic correctly discards climber progress and preserves committed state across all possible 4-dice roll combinations (all 6^4 = 1296 outcomes representable).
@@ -174,3 +175,4 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - Q: How are players configured before the game starts? → A: Each player enters a name only; colors are auto-assigned in fixed order (Player 1 = red, Player 2 = blue, Player 3 = green, Player 4 = yellow).
 - Q: What happens after a winner is declared? → A: A winner screen is shown with a "New Game" button that clears the finished game and returns all players to the name-entry setup lobby.
 - Q: Should dice rolling have visual animation? → A: Yes — animated tumble/spin for approximately 1 second before revealing the result; Roll button disabled during animation.
+- Q: How should unusable splits be displayed in the split selector? → A: All 3 splits always shown; unusable ones rendered with disabled styling (grayed out, unclickable); no additional color coding required.
