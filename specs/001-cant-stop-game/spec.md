@@ -123,6 +123,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - **FR-017**: The system MUST pass the turn to the next player after every STOP or BUST.
 - **FR-018**: The system MUST end the game immediately when a player's claimed column count reaches 3, declaring that player the winner.
 - **FR-019**: The system MUST prevent a player from stopping before making their first roll of a turn.
+- **FR-020**: The system MUST auto-save the complete game state to IndexedDB after every state-mutating action (roll, split selection, stop, bust). On page load, if a saved in-progress game exists, it MUST be automatically restored without user intervention.
 
 ### Key Entities
 
@@ -139,7 +140,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 
 ### Measurable Outcomes
 
-- **SC-001**: All 19 functional requirements are satisfied and pass automated verification.
+- **SC-001**: All 20 functional requirements are satisfied and pass automated verification.
 - **SC-002**: A complete 2-player game can be started, played to completion, and produce a winner in a single uninterrupted session with no invalid state transitions.
 - **SC-003**: Every edge case identified in the specification (§ Edge Cases) produces the correct outcome under automated testing with 100% pass rate.
 - **SC-004**: The bust mechanic correctly discards climber progress and preserves committed state across all possible 4-dice roll combinations (all 6^4 = 1296 outcomes representable).
@@ -158,4 +159,12 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - The game does not implement any AI/computer-controlled players; all players are human.
 - There are no time limits per turn; the game is fully asynchronous from a timing perspective.
 - House rules, solo variants, cooperative variants, and tournament rules are explicitly out of scope.
-- A game session is not persisted between application restarts (no save/load functionality required).
+- The game auto-saves state to browser-local storage (IndexedDB) on every state change. An in-progress game is automatically restored if the page is refreshed. No explicit save/load UI is required; persistence is transparent to the player.
+
+---
+
+## Clarifications
+
+### Session 2026-05-08
+
+- Q: What is the intended persistence scope for game sessions? → A: Auto-save to IndexedDB on every state change; in-progress game survives page refresh automatically (no explicit save/load UI).
