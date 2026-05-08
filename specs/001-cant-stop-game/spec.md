@@ -155,7 +155,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - The game is implemented as a single software application (platform unspecified); networking, real-time multiplayer over a network, and persistent cloud saves are out of scope.
 - All players share the same device/interface (hot-seat multiplayer); no player authentication or identity management is required.
 - The random dice roll is assumed to be sufficiently random for gameplay purposes; cryptographic randomness is not required.
-- Player colors/identities are assigned at game start and do not change during a session.
+- Each player enters a name before the game starts. Colors are auto-assigned in fixed order: Player 1 = red, Player 2 = blue, Player 3 = green, Player 4 = yellow. No color picker is required. Names and colors do not change during a session.
 - The game does not implement any AI/computer-controlled players; all players are human.
 - There are no time limits per turn; the game is fully asynchronous from a timing perspective.
 - House rules, solo variants, cooperative variants, and tournament rules are explicitly out of scope.
@@ -168,3 +168,4 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 ### Session 2026-05-08
 
 - Q: What is the intended persistence scope for game sessions? → A: Auto-save to IndexedDB on every state change; in-progress game survives page refresh automatically (no explicit save/load UI).
+- Q: How are players configured before the game starts? → A: Each player enters a name only; colors are auto-assigned in fixed order (Player 1 = red, Player 2 = blue, Player 3 = green, Player 4 = yellow).
