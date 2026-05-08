@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Application } from '@pixi/react';
 import { useGameState } from '../hooks/useGameState';
 import { BoardColumn } from './BoardColumn';
@@ -12,38 +13,60 @@ const BOARD_PADDING_Y = 24;
 
 const BOARD_WIDTH = BOARD_PADDING_X * 2 + COL_SPACING * (COLUMN_NUMBERS.length - 1);
 const BOARD_HEIGHT = BOARD_PADDING_Y * 2 + MAX_HEIGHT * (CELL_SIZE + CELL_GAP) + 32;
+// App layout padding (1.5rem each side)
+const APP_PADDING = 48;
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => window.innerWidth);
+  useEffect(() => {
+    const update = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  return width;
+}
 
 export function GameBoard() {
   const game = useGameState((s) => s.game);
+  const windowWidth = useWindowWidth();
+
+  const scale = Math.min(1, (windowWidth - APP_PADDING) / BOARD_WIDTH);
+  const scaledWidth = Math.round(BOARD_WIDTH * scale);
+  const scaledHeight = Math.round(BOARD_HEIGHT * scale);
 
   if (!game) return null;
 
   const { board, players, turn } = game;
 
   return (
-    <div style={styles.wrapper} aria-label="Game board">
-      <Application
-        width={BOARD_WIDTH}
-        height={BOARD_HEIGHT}
-        background={0x0f1b35}
-        antialias
-      >
-        {COLUMN_NUMBERS.map((colNum, i) => {
-          const col = board.columns.find((c) => c.number === colNum)!;
-          const colX = BOARD_PADDING_X + i * COL_SPACING;
-          return (
-            <BoardColumn
-              key={colNum}
-              column={col}
-              players={players}
-              climbers={turn.climbers}
-              x={colX}
-              baseY={BOARD_PADDING_Y}
-              maxHeight={MAX_HEIGHT}
-            />
-          );
-        })}
-      </Application>
+    <div
+      style={{ ...styles.wrapper, width: scaledWidth, height: scaledHeight }}
+      aria-label="Game board"
+    >
+      <div style={{ ...styles.scaler, transform: `scale(${scale})` }}>
+        <Application
+          width={BOARD_WIDTH}
+          height={BOARD_HEIGHT}
+          background={0x0f1b35}
+          antialias
+        >
+          {COLUMN_NUMBERS.map((colNum, i) => {
+            const col = board.columns.find((c) => c.number === colNum)!;
+            const colX = BOARD_PADDING_X + i * COL_SPACING;
+            return (
+              <BoardColumn
+                key={colNum}
+                column={col}
+                players={players}
+                climbers={turn.climbers}
+                x={colX}
+                baseY={BOARD_PADDING_Y}
+                maxHeight={MAX_HEIGHT}
+              />
+            );
+          })}
+        </Application>
+      </div>
     </div>
   );
 }
@@ -52,7 +75,12 @@ const styles: Record<string, React.CSSProperties> = {
   wrapper: {
     borderRadius: '0.75rem',
     overflow: 'hidden',
-    display: 'inline-block',
+    position: 'relative',
     boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+    flexShrink: 0,
+  },
+  scaler: {
+    transformOrigin: 'top left',
+    position: 'absolute',
   },
 };
