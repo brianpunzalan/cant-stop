@@ -19,21 +19,22 @@ Two to four players sit down to play a full game of Can't Stop from setup throug
 
 1. **Given** a new game is started with 2 players, **When** players alternate turns rolling and stopping until one player claims 3 columns, **Then** that player is declared the winner and the game ends immediately.
 2. **Given** a game is in progress, **When** a player claims their third column on a STOP action, **Then** all climber progress is committed, all three columns are marked as claimed, and no further play is possible.
-3. **Given** a 4-player game, **When** player order is established, **Then** turns rotate in the correct sequence and each player can only act on their own turn.
+3. **Given** the game has ended with a winner, **When** the winner screen is displayed, **Then** a "New Game" button is available that discards the finished game and returns all players to the name-entry setup lobby.
+4. **Given** a 4-player game, **When** player order is established, **Then** turns rotate in the correct sequence and each player can only act on their own turn.
 
 ---
 
 ### User Story 2 - Roll Dice and Choose a Pairing (Priority: P1)
 
-On their turn, a player rolls four dice and is presented with all non-unusable ways to pair the dice into two sums. The player may freely select any non-unusable pairing — including a partially usable one even when a fully usable option is also available. If all pairings are unusable, the player busts automatically.
+On their turn, a player rolls four dice and is presented with all non-unusable ways to pair the dice into two sums. The player may freely select any non-unusable pairing — including a partially usable one even when a fully usable option is also available. If all pairings are unusable, the player busts automatically. Rolling is accompanied by a brief dice animation before the result is revealed.
 
 **Why this priority**: Dice rolling and split selection is the core mechanic every turn depends on. It must be correct for the game to function.
 
-**Independent Test**: A single turn can be simulated in isolation — roll dice, display valid pairings, select one, and observe climber advances — without needing a full game session.
+**Independent Test**: A single turn can be simulated in isolation — roll dice, display valid pairings, select one, and observe climber advances — without needing a full game session. All three pairings are always shown; unusable pairings are visually disabled and unclickable.
 
 **Acceptance Scenarios**:
 
-1. **Given** a player is in their turn, **When** they roll four dice, **Then** all three possible pair-splits are computed and each is classified as fully usable, partially usable, or unusable.
+1. **Given** a player is in their turn, **When** they roll four dice, **Then** a dice tumble animation plays for approximately 1 second before the four result values are revealed, after which all three possible pair-splits are computed and each is classified as fully usable, partially usable, or unusable.
 2. **Given** at least one split is fully usable and the player selects a fully usable split, **When** it is applied, **Then** both sums are applied as advances and the player is offered the choice to stop or roll again.
 3. **Given** at least one split is usable or partially usable and the player selects a partially usable split, **When** it is applied, **Then** only the usable sum is applied as an advance and the player is offered the choice to stop or roll again.
 4. **Given** all splits are unusable, **When** the roll resolves, **Then** the player busts automatically — no split selection is presented and the turn ends.
@@ -123,6 +124,10 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - **FR-017**: The system MUST pass the turn to the next player after every STOP or BUST.
 - **FR-018**: The system MUST end the game immediately when a player's claimed column count reaches 3, declaring that player the winner.
 - **FR-019**: The system MUST prevent a player from stopping before making their first roll of a turn.
+- **FR-020**: The system MUST auto-save the complete game state to IndexedDB after every state-mutating action (roll, split selection, stop, bust). On page load, if a saved in-progress game exists, it MUST be automatically restored without user intervention.
+- **FR-021**: When the game ends, the system MUST display a winner screen. The winner screen MUST offer a "New Game" action that clears the finished game from storage and navigates to the player-name setup lobby.
+- **FR-022**: When a player triggers a roll, the system MUST display a dice tumble animation lasting approximately 1 second before revealing the result values. The Roll button and split selector MUST be disabled for the duration of the animation.
+- **FR-023**: The split selector MUST always display all three pair-splits after a roll. Unusable splits MUST be rendered with disabled styling (grayed out, unclickable) to communicate why they cannot be chosen. No additional color coding beyond enabled/disabled is required.
 
 ### Key Entities
 
@@ -139,7 +144,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 
 ### Measurable Outcomes
 
-- **SC-001**: All 19 functional requirements are satisfied and pass automated verification.
+- **SC-001**: All 23 functional requirements are satisfied and pass automated verification.
 - **SC-002**: A complete 2-player game can be started, played to completion, and produce a winner in a single uninterrupted session with no invalid state transitions.
 - **SC-003**: Every edge case identified in the specification (§ Edge Cases) produces the correct outcome under automated testing with 100% pass rate.
 - **SC-004**: The bust mechanic correctly discards climber progress and preserves committed state across all possible 4-dice roll combinations (all 6^4 = 1296 outcomes representable).
@@ -154,8 +159,20 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - The game is implemented as a single software application (platform unspecified); networking, real-time multiplayer over a network, and persistent cloud saves are out of scope.
 - All players share the same device/interface (hot-seat multiplayer); no player authentication or identity management is required.
 - The random dice roll is assumed to be sufficiently random for gameplay purposes; cryptographic randomness is not required.
-- Player colors/identities are assigned at game start and do not change during a session.
+- Each player enters a name before the game starts. Colors are auto-assigned in fixed order: Player 1 = red, Player 2 = blue, Player 3 = green, Player 4 = yellow. No color picker is required. Names and colors do not change during a session.
 - The game does not implement any AI/computer-controlled players; all players are human.
 - There are no time limits per turn; the game is fully asynchronous from a timing perspective.
 - House rules, solo variants, cooperative variants, and tournament rules are explicitly out of scope.
-- A game session is not persisted between application restarts (no save/load functionality required).
+- The game auto-saves state to browser-local storage (IndexedDB) on every state change. An in-progress game is automatically restored if the page is refreshed. No explicit save/load UI is required; persistence is transparent to the player.
+
+---
+
+## Clarifications
+
+### Session 2026-05-08
+
+- Q: What is the intended persistence scope for game sessions? → A: Auto-save to IndexedDB on every state change; in-progress game survives page refresh automatically (no explicit save/load UI).
+- Q: How are players configured before the game starts? → A: Each player enters a name only; colors are auto-assigned in fixed order (Player 1 = red, Player 2 = blue, Player 3 = green, Player 4 = yellow).
+- Q: What happens after a winner is declared? → A: A winner screen is shown with a "New Game" button that clears the finished game and returns all players to the name-entry setup lobby.
+- Q: Should dice rolling have visual animation? → A: Yes — animated tumble/spin for approximately 1 second before revealing the result; Roll button disabled during animation.
+- Q: How should unusable splits be displayed in the split selector? → A: All 3 splits always shown; unusable ones rendered with disabled styling (grayed out, unclickable); no additional color coding required.
