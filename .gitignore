@@ -13,3 +13,7 @@ Thumbs.db
 dist-ssr/
 *.local
 dev-dist/
+*.tsbuildinfo
+*.d.ts.map
+vite.config.d.ts
+vitest.config.d.ts
