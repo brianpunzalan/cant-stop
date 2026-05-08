@@ -19,7 +19,8 @@ Two to four players sit down to play a full game of Can't Stop from setup throug
 
 1. **Given** a new game is started with 2 players, **When** players alternate turns rolling and stopping until one player claims 3 columns, **Then** that player is declared the winner and the game ends immediately.
 2. **Given** a game is in progress, **When** a player claims their third column on a STOP action, **Then** all climber progress is committed, all three columns are marked as claimed, and no further play is possible.
-3. **Given** a 4-player game, **When** player order is established, **Then** turns rotate in the correct sequence and each player can only act on their own turn.
+3. **Given** the game has ended with a winner, **When** the winner screen is displayed, **Then** a "New Game" button is available that discards the finished game and returns all players to the name-entry setup lobby.
+4. **Given** a 4-player game, **When** player order is established, **Then** turns rotate in the correct sequence and each player can only act on their own turn.
 
 ---
 
@@ -124,6 +125,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 - **FR-018**: The system MUST end the game immediately when a player's claimed column count reaches 3, declaring that player the winner.
 - **FR-019**: The system MUST prevent a player from stopping before making their first roll of a turn.
 - **FR-020**: The system MUST auto-save the complete game state to IndexedDB after every state-mutating action (roll, split selection, stop, bust). On page load, if a saved in-progress game exists, it MUST be automatically restored without user intervention.
+- **FR-021**: When the game ends, the system MUST display a winner screen. The winner screen MUST offer a "New Game" action that clears the finished game from storage and navigates to the player-name setup lobby.
 
 ### Key Entities
 
@@ -140,7 +142,7 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 
 ### Measurable Outcomes
 
-- **SC-001**: All 20 functional requirements are satisfied and pass automated verification.
+- **SC-001**: All 21 functional requirements are satisfied and pass automated verification.
 - **SC-002**: A complete 2-player game can be started, played to completion, and produce a winner in a single uninterrupted session with no invalid state transitions.
 - **SC-003**: Every edge case identified in the specification (§ Edge Cases) produces the correct outcome under automated testing with 100% pass rate.
 - **SC-004**: The bust mechanic correctly discards climber progress and preserves committed state across all possible 4-dice roll combinations (all 6^4 = 1296 outcomes representable).
@@ -169,3 +171,4 @@ If a roll produces no legally usable pairing, the player busts. All provisional 
 
 - Q: What is the intended persistence scope for game sessions? → A: Auto-save to IndexedDB on every state change; in-progress game survives page refresh automatically (no explicit save/load UI).
 - Q: How are players configured before the game starts? → A: Each player enters a name only; colors are auto-assigned in fixed order (Player 1 = red, Player 2 = blue, Player 3 = green, Player 4 = yellow).
+- Q: What happens after a winner is declared? → A: A winner screen is shown with a "New Game" button that clears the finished game and returns all players to the name-entry setup lobby.
